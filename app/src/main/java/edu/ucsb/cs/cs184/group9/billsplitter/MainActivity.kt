@@ -1,35 +1,47 @@
 package edu.ucsb.cs.cs184.group9.billsplitter
 
 import android.os.Bundle
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
-import edu.ucsb.cs.cs184.group9.billsplitter.databinding.ActivityMainBinding
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.bill.BillScreen
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.creategroup.CreateGroupScreen
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.BottomBar
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_BILL
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_HOME
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_PROFILE
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.profile.ProfileScreen
 
-class MainActivity : AppCompatActivity() {
-
-    private lateinit var binding: ActivityMainBinding
-
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContent {
+            MainScreen()
+        }
+    }
+    
+    @Composable
+    fun MainScreen() {
+        val navController = rememberNavController()
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        val navView: BottomNavigationView = binding.navView
-
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications
-            )
-        )
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+        Scaffold(
+            bottomBar = { BottomBar(navController = navController) }
+        ) { innerPadding ->
+            NavHost(
+                modifier = Modifier.padding(innerPadding),
+                navController = navController,
+                startDestination = NAV_BILL
+            ) {
+                composable(NAV_HOME) { CreateGroupScreen(navController = navController) }
+                composable(NAV_PROFILE) { ProfileScreen() }
+                composable(NAV_BILL) { BillScreen(navController = navController) }
+            }
+        }
     }
 }

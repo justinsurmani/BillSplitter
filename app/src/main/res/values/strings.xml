@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">BillSplitter</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="home">Home</string>
+    <string name="profile">Profile</string>
 </resources>
