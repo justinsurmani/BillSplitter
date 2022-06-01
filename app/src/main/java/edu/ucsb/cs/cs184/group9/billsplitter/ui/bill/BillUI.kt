@@ -33,15 +33,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Bill
-import edu.ucsb.cs.cs184.group9.billsplitter.dao.Group
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Item
-import edu.ucsb.cs.cs184.group9.billsplitter.dao.User
+import edu.ucsb.cs.cs184.group9.billsplitter.repository.BillRepository
 import java.util.UUID
 
-class BillViewModelFactory(val bill : Bill) : ViewModelProvider.Factory {
+class BillViewModelFactory(private val id: UUID) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T =
         modelClass.getConstructor(Bill::class.java)
-            .newInstance(bill)
+            .newInstance(BillRepository.loadBill(id))
 }
 
 class BillViewModel(bill: Bill) : ViewModel() {
@@ -64,20 +63,7 @@ class BillViewModel(bill: Bill) : ViewModel() {
 @Composable
 fun BillScreen(
     navController : NavController,
-    billViewModel: BillViewModel = viewModel(factory = BillViewModelFactory(bill = run {
-        val bob = User(UUID.randomUUID(), "Bob")
-        val alice = User(UUID.randomUUID(), "Alice")
-        val mallory = User(UUID.randomUUID(), "Mallory")
-        val sampleGroup = Group(bob, users = listOf(bob, alice, mallory))
-        val sampleBill = Bill(
-            sampleGroup,
-            10000,
-            items = sampleGroup.users.map {
-                Item("${it.name}'s Share", 0, it)
-            }
-        )
-        sampleBill
-    }))
+    billViewModel: BillViewModel = viewModel(factory = BillViewModelFactory(UUID.randomUUID()))
 ) {
     val bill by billViewModel.bill.observeAsState()
     val tip by billViewModel.tip.observeAsState()
