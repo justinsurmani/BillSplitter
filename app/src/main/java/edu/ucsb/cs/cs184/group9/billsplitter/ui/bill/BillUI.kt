@@ -37,7 +37,7 @@ import edu.ucsb.cs.cs184.group9.billsplitter.dao.Item
 import edu.ucsb.cs.cs184.group9.billsplitter.repository.BillRepository
 import java.util.UUID
 
-class BillViewModelFactory(private val id: UUID) : ViewModelProvider.Factory {
+class BillViewModelFactory(private val id: String) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T =
         modelClass.getConstructor(Bill::class.java)
             .newInstance(BillRepository.loadBill(id))
@@ -63,7 +63,8 @@ class BillViewModel(bill: Bill) : ViewModel() {
 @Composable
 fun BillScreen(
     navController : NavController,
-    billViewModel: BillViewModel = viewModel(factory = BillViewModelFactory(UUID.randomUUID()))
+    billId : String,
+    billViewModel: BillViewModel = viewModel(factory = BillViewModelFactory(billId))
 ) {
     val bill by billViewModel.bill.observeAsState()
     val tip by billViewModel.tip.observeAsState()

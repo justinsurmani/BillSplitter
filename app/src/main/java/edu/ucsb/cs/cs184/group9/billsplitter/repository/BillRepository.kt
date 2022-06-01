@@ -6,8 +6,9 @@ import java.util.UUID
 
 object BillRepository {
 
+    // temporary in memory "database" using a mutable map
     @JvmStatic
-    private val db : MutableMap<UUID, Bill> = mutableMapOf()
+    private val db : MutableMap<String, Bill> = mutableMapOf()
 
     fun createBill(bill: Bill) {
         Log.i(this.javaClass.name, "Creating Bill $bill")
@@ -15,7 +16,7 @@ object BillRepository {
         db[bill.id] = bill
     }
 
-    fun loadBill(id: UUID) : Bill? {
+    fun loadBill(id: String) : Bill? {
         Log.i(this.javaClass.name, "Load Bill $id")
 
         return db[id]
