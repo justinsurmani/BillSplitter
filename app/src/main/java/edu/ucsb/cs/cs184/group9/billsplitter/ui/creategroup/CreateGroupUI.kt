@@ -31,7 +31,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import edu.ucsb.cs.cs184.group9.billsplitter.dao.Bill
+import edu.ucsb.cs.cs184.group9.billsplitter.dao.Item
+import edu.ucsb.cs.cs184.group9.billsplitter.dao.User
+import edu.ucsb.cs.cs184.group9.billsplitter.repository.BillRepository
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_BILL
+import java.util.UUID
 
 class CreateGroupViewModel : ViewModel() {
     private val _amountOfPeople : MutableLiveData<Int> = MutableLiveData(2)
@@ -52,7 +57,17 @@ fun CreateGroupScreen(
     CreateGroupContent(
         amountOfPeople = amountOfPeople,
         onAmountOfPeopleChange = { createGroupViewModel.onAmountOfPeopleChange(it) },
-        onCreate = { navController.navigate(NAV_BILL) }
+        onCreate = {
+            val sampleBill = Bill(
+                id = UUID.randomUUID().toString(),
+                total = 10000,
+                items = (1..amountOfPeople).map {
+                    Item("$it's share", 0, User("$it", "User $it"))
+                }
+            )
+            BillRepository.createBill(sampleBill)
+            navController.navigate(NAV_BILL.replace("{billId}", sampleBill.id))
+        }
     )
 }
 

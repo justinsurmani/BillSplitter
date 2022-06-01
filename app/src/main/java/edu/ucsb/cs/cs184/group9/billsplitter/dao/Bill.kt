@@ -1,7 +1,9 @@
 package edu.ucsb.cs.cs184.group9.billsplitter.dao
 
+import java.util.UUID
+
 data class Bill(
-    val group: Group,
+    val id: String,
     val total: Int,
     val items : List<Item> = listOf()
 ) {
