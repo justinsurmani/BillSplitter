@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "397807230119",
+    "project_id": "billsplitter-640f6",
+    "storage_bucket": "billsplitter-640f6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:397807230119:android:0921961cca552d1320cf82",
+        "android_client_info": {
+          "package_name": "edu.ucsb.cs.cs184.group9.billsplitter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "397807230119-he0dtsj8te1p8nv29dtak2t65g47kovj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCO5r-wNCIHnsAldGB71qBPVfiJHgph9tM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "397807230119-he0dtsj8te1p8nv29dtak2t65g47kovj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
