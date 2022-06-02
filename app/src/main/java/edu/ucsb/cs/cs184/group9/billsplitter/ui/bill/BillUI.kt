@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
@@ -33,6 +34,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Bill
+import edu.ucsb.cs.cs184.group9.billsplitter.dao.Group
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Item
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.User
 import edu.ucsb.cs.cs184.group9.billsplitter.repository.BillRepository
@@ -55,6 +57,10 @@ class BillViewModel(bill: Bill) : ViewModel() {
         _tip.value = newTip
     }
 
+    fun onBillChange(newBill: Bill) {
+        _bill.value = newBill
+    }
+
     fun onItemChange(item: Item, newItem: Item) {
         val newItems = bill.value?.items?.map { if (it == item) newItem else it }
         val newBill = bill.value?.copy(items = newItems.orEmpty())
@@ -73,6 +79,7 @@ fun BillScreen(
     BillContent(
         bill = bill!!,
         tip = tip!!,
+        onBillChange = { billViewModel.onBillChange(it) },
         onItemChange = { prev, new -> billViewModel.onItemChange(prev, new) },
         onTipSelected = { billViewModel.onTipChange(it) }
     )
@@ -82,6 +89,7 @@ fun BillScreen(
 private fun BillContent(
     bill : Bill,
     tip : Int,
+    onBillChange: (newBill: Bill) -> Unit,
     onItemChange: (prev: Item, new: Item) -> Unit,
     onTipSelected: (Int) -> Unit
 ) {
@@ -99,13 +107,21 @@ private fun BillContent(
         Text(
             text = "${bill.remainingTotal.asMoneyDisplay()} left"
         )
-        Column {
-           bill.items.forEach {
-               BillItem(
-                   billItem = it,
-                   onItemChange = onItemChange
-               )
-           }
+        Column (horizontalAlignment = Alignment.CenterHorizontally) {
+            bill.items.forEach {
+                BillItem(
+                    billItem = it,
+                    onItemChange = onItemChange
+                )
+            }
+            Button(
+                onClick = {
+                    val newBill = bill.copy(items = bill.items.copyAndAdd(Item("New Item", 0)))
+                    onBillChange(newBill)
+                }
+            ) {
+                Text(text = "Add Item")
+            }
         }
         Text(text = "$tip%")
         TipSlider(onTipSelected = onTipSelected)
@@ -123,6 +139,7 @@ private fun BillItem(
     var priceDisplay by remember { mutableStateOf(billItem.price.asMoneyDisplay()) }
     var nameDisplay by remember { mutableStateOf(billItem.name) }
     val focusManager = LocalFocusManager.current
+
     ExpandableCard(
         title = {
             Row(
@@ -130,8 +147,8 @@ private fun BillItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(text = nameDisplay)
-                Text(text = priceDisplay)
+                Text(text = billItem.name)
+                Text(text = billItem.price.toString())
             }
         }
     ) {
@@ -147,7 +164,7 @@ private fun BillItem(
                     nameDisplay = value
                 },
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Number,
+                    keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(onDone = {
@@ -212,16 +229,23 @@ private fun Int.asMoneyDisplay(): String {
     return "$$dollars.$cents"
 }
 
+private fun List<Item>.copyAndAdd(newItem: Item) : List<Item> {
+    val newList = this.toMutableList()
+    newList.add(newItem)
+
+    return newList.toList()
+}
+
 // preview composable
 @Preview
 @Composable
 private fun BillUIPreview() {
+    val users = (1..4).map { User(UUID.randomUUID().toString(), "User $it") }
+    val sampleGroup = Group(users[0], users)
     val sampleBill = Bill(
         id = UUID.randomUUID().toString(),
         total = 10000,
-        items = (1..4).map {
-            Item("$it's share", 0, listOf(User("$it", "User $it")))
-        }
+        group = sampleGroup
     )
     BillRepository.createBill(sampleBill)
     BillScreen(billId = sampleBill.id)

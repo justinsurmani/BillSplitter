@@ -32,6 +32,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Bill
+import edu.ucsb.cs.cs184.group9.billsplitter.dao.Group
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Item
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.User
 import edu.ucsb.cs.cs184.group9.billsplitter.repository.BillRepository
@@ -58,12 +59,12 @@ fun CreateGroupScreen(
         amountOfPeople = amountOfPeople,
         onAmountOfPeopleChange = { createGroupViewModel.onAmountOfPeopleChange(it) },
         onCreate = {
+            val users = (1..amountOfPeople).map { User(UUID.randomUUID().toString(), "User $it") }
+            val sampleGroup = Group(users[0], users)
             val sampleBill = Bill(
                 id = UUID.randomUUID().toString(),
                 total = 10000,
-                items = (1..amountOfPeople).map {
-                    Item("$it's share", 0, listOf(User("$it", "User $it")))
-                }
+                group = sampleGroup
             )
             BillRepository.createBill(sampleBill)
             navController.navigate(NAV_BILL.replace("{billId}", sampleBill.id))
