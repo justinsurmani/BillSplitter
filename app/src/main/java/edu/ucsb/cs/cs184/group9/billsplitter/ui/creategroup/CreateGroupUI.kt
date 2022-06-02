@@ -62,7 +62,7 @@ fun CreateGroupScreen(
                 id = UUID.randomUUID().toString(),
                 total = 10000,
                 items = (1..amountOfPeople).map {
-                    Item("$it's share", 0, User("$it", "User $it"))
+                    Item("$it's share", 0, listOf(User("$it", "User $it")))
                 }
             )
             BillRepository.createBill(sampleBill)

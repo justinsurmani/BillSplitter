@@ -6,11 +6,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
@@ -25,16 +25,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Bill
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Item
+import edu.ucsb.cs.cs184.group9.billsplitter.dao.User
 import edu.ucsb.cs.cs184.group9.billsplitter.repository.BillRepository
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.ExpandableCard
 import java.util.UUID
 
 class BillViewModelFactory(private val id: String) : ViewModelProvider.Factory {
@@ -62,7 +64,6 @@ class BillViewModel(bill: Bill) : ViewModel() {
 
 @Composable
 fun BillScreen(
-    navController : NavController,
     billId : String,
     billViewModel: BillViewModel = viewModel(factory = BillViewModelFactory(billId))
 ) {
@@ -120,30 +121,59 @@ private fun BillItem(
     onItemChange: (prev: Item, new: Item) -> Unit
 ) {
     var priceDisplay by remember { mutableStateOf(billItem.price.asMoneyDisplay()) }
+    var nameDisplay by remember { mutableStateOf(billItem.name) }
     val focusManager = LocalFocusManager.current
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+    ExpandableCard(
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(text = nameDisplay)
+                Text(text = priceDisplay)
+            }
+        }
     ) {
-        TextField(
-            value = priceDisplay,
-            onValueChange = { value ->
-                priceDisplay = value
-            },
-            keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(onDone = {
-                onItemChange(billItem, billItem.copy(price = priceDisplay.asMoneyValue()))
-                // change local state
-                priceDisplay = priceDisplay.asMoneyValue().asMoneyDisplay()
-                focusManager.clearFocus()
-            }),
-            modifier = Modifier.width(100.dp)
-        )
-        Text(text = "${billItem.payer.name}: ${billItem.price.asMoneyDisplay()}")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            OutlinedTextField(
+                label = { Text(text = "Item Name") },
+                value = nameDisplay,
+                onValueChange = { value ->
+                    nameDisplay = value
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(onDone = {
+                    onItemChange(billItem, billItem.copy(name = nameDisplay))
+                    focusManager.clearFocus()
+                })
+            )
+            OutlinedTextField(
+                label = { Text(text="Price") },
+                value = priceDisplay,
+                onValueChange = { value ->
+                    priceDisplay = value
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(onDone = {
+                    onItemChange(billItem, billItem.copy(price = priceDisplay.asMoneyValue()))
+                    // change local state
+                    priceDisplay = priceDisplay.asMoneyValue().asMoneyDisplay()
+                    focusManager.clearFocus()
+                }),
+            )
+        }
+        // Text(text = "${billItem.payer.name}: ${billItem.price.asMoneyDisplay()}")
     }
 }
 
@@ -182,4 +212,18 @@ private fun Int.asMoneyDisplay(): String {
     return "$$dollars.$cents"
 }
 
+// preview composable
+@Preview
+@Composable
+private fun BillUIPreview() {
+    val sampleBill = Bill(
+        id = UUID.randomUUID().toString(),
+        total = 10000,
+        items = (1..4).map {
+            Item("$it's share", 0, listOf(User("$it", "User $it")))
+        }
+    )
+    BillRepository.createBill(sampleBill)
+    BillScreen(billId = sampleBill.id)
+}
 
