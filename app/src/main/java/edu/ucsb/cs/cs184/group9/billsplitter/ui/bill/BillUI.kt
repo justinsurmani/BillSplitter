@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
@@ -62,7 +63,7 @@ class BillViewModel(bill: Bill) : ViewModel() {
     }
 
     fun onItemChange(item: Item, newItem: Item) {
-        val newItems = bill.value?.items?.map { if (it == item) newItem else it }
+        val newItems = bill.value?.items?.copyAndReplace(item, newItem)
         val newBill = bill.value?.copy(items = newItems.orEmpty())
         _bill.value = newBill
     }
@@ -110,6 +111,7 @@ private fun BillContent(
         Column (horizontalAlignment = Alignment.CenterHorizontally) {
             bill.items.forEach {
                 BillItem(
+                    bill = bill,
                     billItem = it,
                     onItemChange = onItemChange
                 )
@@ -133,6 +135,7 @@ private fun BillContent(
 
 @Composable
 private fun BillItem(
+    bill : Bill,
     billItem : Item,
     onItemChange: (prev: Item, new: Item) -> Unit
 ) {
@@ -190,7 +193,37 @@ private fun BillItem(
                 }),
             )
         }
+        Text(text = "Payer(s)")
+        MultiSelectBox(
+            items = bill.group.users.map { it to (it in billItem.payers) },
+            stringifyItem = User::name,
+            onItemChange = {
+                val selected = it.second
+                onItemChange(billItem, billItem.copy(payers = billItem.payers.copyAnd(selected, it.first)))
+            }
+        )
         // Text(text = "${billItem.payer.name}: ${billItem.price.asMoneyDisplay()}")
+    }
+}
+
+@Composable
+private fun <T> MultiSelectBox(
+    items: List<Pair<T, Boolean>>,
+    stringifyItem: (T) -> String = { it.toString() },
+    onItemChange: (item: Pair<T, Boolean>) -> Unit
+){
+    Column {
+        items.forEach { item ->
+            Row (verticalAlignment = Alignment.CenterVertically){
+                Checkbox(
+                    checked = item.second,
+                    onCheckedChange = {
+                        onItemChange(item.copy(second = it))
+                    }
+                )
+                Text(text = stringifyItem(item.first))
+            }
+        }
     }
 }
 
@@ -209,6 +242,7 @@ private fun TipSlider(onTipSelected: (Int) -> Unit, tipValues: List<Int> = listO
     )
 }
 
+// helpful extension functions
 private fun String.asMoneyValue(): Int {
     val splatted = this.filter { it.isDigit() || it == '.' }
         .split(".", limit = 2)
@@ -229,7 +263,20 @@ private fun Int.asMoneyDisplay(): String {
     return "$$dollars.$cents"
 }
 
-private fun List<Item>.copyAndAdd(newItem: Item) : List<Item> {
+private fun <T> Set<T>.copyAnd(add: Boolean, item: T): Set<T> {
+    val newSet = this.toMutableSet()
+
+    if (add) newSet.add(item)
+    else newSet.remove(item)
+
+    return newSet.toSet()
+}
+
+private fun <T> List<T>.copyAndReplace(prevItem: T, newItem: T): List<T> {
+    return this.map { if (it == prevItem) newItem else it }.toList()
+}
+
+private fun <T> List<T>.copyAndAdd(newItem: T) : List<T> {
     val newList = this.toMutableList()
     newList.add(newItem)
 
@@ -245,7 +292,8 @@ private fun BillUIPreview() {
     val sampleBill = Bill(
         id = UUID.randomUUID().toString(),
         total = 10000,
-        group = sampleGroup
+        group = sampleGroup,
+        items = listOf(Item("Sample Item", 0))
     )
     BillRepository.createBill(sampleBill)
     BillScreen(billId = sampleBill.id)
