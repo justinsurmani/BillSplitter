@@ -106,6 +106,9 @@ private fun BillContent(
             text = "Your Bill"
         )
         Text(
+            text = "Bill Total: ${bill.total.asMoneyDisplay()}"
+        )
+        Text(
             text = "${bill.remainingTotal.asMoneyDisplay()} left"
         )
         Column (horizontalAlignment = Alignment.CenterHorizontally) {
@@ -125,10 +128,24 @@ private fun BillContent(
                 Text(text = "Add Item")
             }
         }
+
         Text(text = "$tip%")
         TipSlider(onTipSelected = onTipSelected)
+
+        Text(text = "Totals for each User")
+        bill.group.users.forEach { user ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = user.name)
+                Text(text = bill.totalsForEachUser[user]!!.asMoneyDisplay())
+            }
+        }
+
         Text(
-            text = "Your total: ${bill.total.asMoneyDisplay()}"
+            text = "Current total: ${bill.currentTotal.asMoneyDisplay()}"
         )
     }
 }
@@ -151,7 +168,7 @@ private fun BillItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(text = billItem.name)
-                Text(text = billItem.price.toString())
+                Text(text = billItem.price.asMoneyDisplay())
             }
         }
     ) {
@@ -214,7 +231,9 @@ private fun <T> MultiSelectBox(
 ){
     Column {
         items.forEach { item ->
-            Row (verticalAlignment = Alignment.CenterVertically){
+            Row (
+                verticalAlignment = Alignment.CenterVertically
+            ){
                 Checkbox(
                     checked = item.second,
                     onCheckedChange = {
