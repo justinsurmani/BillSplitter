@@ -19,6 +19,8 @@
 	- User Login
 	![](https://i.imgur.com/exvHYof.gif)
 
+- User can choose number of people to split with and add subtotal and tax of bill
+![](https://im5.ezgif.com/tmp/ezgif-5-dcb9607acd.gif)
 - User can adjust the prices and number of users for each item and their total will be updated correspondingly in the bottom section.
 
 ![](https://i.imgur.com/vwtbDoI.gif)
