@@ -1,18 +1,33 @@
 # Bill Splitter App Design Document
-
 ## Architecture Description
 - Framework:
   - Kotlin / Jetpack Compose
+	  - Resources for Jetpack Compose
+		  - [Jetpack Compose: State](https://www.youtube.com/watch?v=cDabx3SjuOY&list=PLQkwcJG4YTCSpJ2NLhDTHhi6XBNfk9WiC)
+		  - [Creating Your First Jetpack Compose App - Android Jetpack Compose - Part 1](https://www.youtube.com/watch?v=mymWGMy9pYI)
+		  - [Jetpack Compose Tutorial for Android: Getting Started](https://www.raywenderlich.com/15361077-jetpack-compose-tutorial-for-android-getting-started)
 - Database/User Authentication:
   - Firebase is used to store user information and bill history
   - data is fetched from the Firebase database to display on the profile page
 
 ## Design Process Documentation
 ### Stage 1
-- We decided to focus on the Bill Splitter UI and logic for the MVP and decided to use Kotlin and XML initially. 
+- We sketched out how we wanted the app to look like as well as decide on the functionalities we wanted it to have.
+![](https://i.imgur.com/V8EHFIO.jpg)
 ### Stage 2
-- We implemented the UIs for our home page and bill splitting page using XML but later switched over to Jetpack Compose due to its similarities to React and its intuitiveness. 
-- We also added some bill splitting logic.
+- We decided to focus on the Bill Splitter UI and logic for the MVP and implemented the UIS using XML.
+![](https://i.imgur.com/e5guprw.png)
+![](https://i.imgur.com/yGtXbys.png)
 ### Stage 3
+- We later switched over to Jetpack Compose due to its similarities to React and its intuitiveness. 
+- We also added some bill splitting logic.
+- 
+
+### Stage 4
 - We added UI for the profile page to easily access the bill history's of each user
 - We set up firebase to store user information, bill history, and authentication.
+![](https://i.imgur.com/9iWOPY3.png)
+![](https://i.imgur.com/9GOZUzE.png)
+
+## Challenges
+- Jetpack Compose vs XML 
