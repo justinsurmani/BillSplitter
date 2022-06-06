@@ -31,7 +31,7 @@ internal fun <T> Set<T>.copyAnd(addToSet: Boolean, item: T): Set<T> {
 }
 
 internal fun <T> List<T>.copyAndReplace(prevItem: T, newItem: T): List<T> {
-    return this.map { if (it == prevItem) newItem else it }.toList()
+    return this.map { if (it === prevItem) newItem else it }.toList()
 }
 
 internal fun <T> List<T>.copyAndAdd(newItem: T) : List<T> {
