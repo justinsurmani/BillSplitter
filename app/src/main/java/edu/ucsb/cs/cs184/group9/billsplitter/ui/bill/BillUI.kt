@@ -40,6 +40,12 @@ import edu.ucsb.cs.cs184.group9.billsplitter.dao.Item
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.User
 import edu.ucsb.cs.cs184.group9.billsplitter.repository.BillRepository
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.ExpandableCard
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.MultiSelectBox
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyDisplay
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyValue
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAnd
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndAdd
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndReplace
 import java.util.UUID
 
 class BillViewModelFactory(private val id: String) : ViewModelProvider.Factory {
@@ -215,34 +221,10 @@ private fun BillItem(
             items = bill.group.users.map { it to (it in billItem.payers) },
             stringifyItem = User::name,
             onItemChange = {
-                val selected = it.second
-                onItemChange(billItem, billItem.copy(payers = billItem.payers.copyAnd(selected, it.first)))
+                val addToSet = it.second
+                onItemChange(billItem, billItem.copy(payers = billItem.payers.copyAnd(addToSet, it.first)))
             }
         )
-        // Text(text = "${billItem.payer.name}: ${billItem.price.asMoneyDisplay()}")
-    }
-}
-
-@Composable
-private fun <T> MultiSelectBox(
-    items: List<Pair<T, Boolean>>,
-    stringifyItem: (T) -> String = { it.toString() },
-    onItemChange: (item: Pair<T, Boolean>) -> Unit
-){
-    Column {
-        items.forEach { item ->
-            Row (
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                Checkbox(
-                    checked = item.second,
-                    onCheckedChange = {
-                        onItemChange(item.copy(second = it))
-                    }
-                )
-                Text(text = stringifyItem(item.first))
-            }
-        }
     }
 }
 
@@ -259,47 +241,6 @@ private fun TipSlider(onTipSelected: (Int) -> Unit, tipValues: List<Int> = listO
         },
         steps = tipValues.size - 2
     )
-}
-
-// helpful extension functions
-private fun String.asMoneyValue(): Int {
-    val splatted = this.filter { it.isDigit() || it == '.' }
-        .split(".", limit = 2)
-
-    if (splatted.size == 1) {
-        return splatted[0].toInt() * 100
-    }
-
-    val dollars = splatted[0].ifBlank { "0" }.toInt()
-    val cents = splatted[1].substring(0, 2).ifBlank { "0" }.toInt()
-
-    return dollars * 100 + cents
-}
-
-private fun Int.asMoneyDisplay(): String {
-    val dollars = (this / 100).toString()
-    val cents = (this % 100).toString().padStart(2, '0')
-    return "$$dollars.$cents"
-}
-
-private fun <T> Set<T>.copyAnd(add: Boolean, item: T): Set<T> {
-    val newSet = this.toMutableSet()
-
-    if (add) newSet.add(item)
-    else newSet.remove(item)
-
-    return newSet.toSet()
-}
-
-private fun <T> List<T>.copyAndReplace(prevItem: T, newItem: T): List<T> {
-    return this.map { if (it == prevItem) newItem else it }.toList()
-}
-
-private fun <T> List<T>.copyAndAdd(newItem: T) : List<T> {
-    val newList = this.toMutableList()
-    newList.add(newItem)
-
-    return newList.toList()
 }
 
 // preview composable
