@@ -3,17 +3,15 @@ package edu.ucsb.cs.cs184.group9.billsplitter.ui.creategroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
-import androidx.compose.material.DropdownMenu
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.ExposedDropdownMenuDefaults
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
@@ -25,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -33,7 +32,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Bill
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Group
-import edu.ucsb.cs.cs184.group9.billsplitter.dao.Item
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.User
 import edu.ucsb.cs.cs184.group9.billsplitter.repository.BillRepository
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_BILL
@@ -54,7 +52,6 @@ fun CreateGroupScreen(
     createGroupViewModel: CreateGroupViewModel = viewModel()
 ) {
     val amountOfPeople by createGroupViewModel.amountOfPeople.observeAsState(2)
-
     CreateGroupContent(
         amountOfPeople = amountOfPeople,
         onAmountOfPeopleChange = { createGroupViewModel.onAmountOfPeopleChange(it) },
@@ -83,6 +80,10 @@ fun CreateGroupContent(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ){
+        val subtotal = remember { mutableStateOf(TextFieldValue()) }
+        val tax = remember { mutableStateOf(TextFieldValue()) }
+        val focusManager = LocalFocusManager.current
+
         Text(
             text = "Create a group"
         )
@@ -95,6 +96,32 @@ fun CreateGroupContent(
 
         Text(
             text = "You've selected $amountOfPeople people"
+        )
+
+        TextField(
+            value = subtotal.value,
+            onValueChange = { subtotal.value = it },
+            placeholder = { Text(text = "Enter Subtotal")},
+            singleLine = true,
+            leadingIcon = { Text(text = "$") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardActions = KeyboardActions(onDone = {
+                focusManager.clearFocus()
+            }),
+            modifier = Modifier.padding(16.dp)
+        )
+
+        TextField(
+            value = tax.value,
+            onValueChange = { tax.value = it },
+            placeholder = { Text(text = "Enter tax") },
+            singleLine = true,
+            leadingIcon = { Text(text = "$") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardActions = KeyboardActions(onDone = {
+                focusManager.clearFocus()
+            }),
+            modifier = Modifier.padding(16.dp)
         )
 
         Button(
