@@ -33,4 +33,5 @@
 ![]()
 
 - User can adjust the prices and number of users for each item and each users total will be updated correspondingly in the bottom section.
+
 ![](https://i.imgur.com/vwtbDoI.gif)
