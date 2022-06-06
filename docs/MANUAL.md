@@ -13,6 +13,7 @@
 
 ### User Experience
 - User Register/Login: User will have to register before using for first time users, after that they can login to use the app whenever they want
+
 ![](https://i.imgur.com/Ev3CkDv.gif)
 ![](https://i.imgur.com/exvHYof.gif)
 
