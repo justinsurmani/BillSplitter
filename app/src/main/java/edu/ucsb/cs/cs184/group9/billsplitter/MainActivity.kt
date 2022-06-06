@@ -64,7 +64,7 @@ class MainActivity : ComponentActivity() {
                             navController.navigate(NAV_LOGIN)
                         }
                     ) {
-                        ProfileScreen()
+                        ProfileScreen(navController = navController)
                     }
                 }
                 composable(
