@@ -14,9 +14,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class ProfileViewModel : ViewModel() {
-    private val _name : MutableLiveData<String> = MutableLiveData("test")
+    private val _name : MutableLiveData<String> = MutableLiveData(Firebase.auth.currentUser?.email)
     val name : LiveData<String> = _name
 
     fun onNameChange(newName: String) {

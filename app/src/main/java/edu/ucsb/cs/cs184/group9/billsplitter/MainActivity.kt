@@ -12,18 +12,26 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.bill.BillScreen
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.creategroup.CreateGroupScreen
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.login.LoginPage
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.login.RegisterPage
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.AuthenticatedRoute
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.BottomBar
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_BILL
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_HOME
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_LOGIN
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_PROFILE
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_REGISTER
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.profile.ProfileScreen
-import java.util.UUID
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             MainScreen()
         }
@@ -41,8 +49,24 @@ class MainActivity : ComponentActivity() {
                 navController = navController,
                 startDestination = NAV_HOME
             ) {
-                composable(NAV_HOME) { CreateGroupScreen(navController = navController) }
-                composable(NAV_PROFILE) { ProfileScreen() }
+                composable(NAV_HOME) {
+                    AuthenticatedRoute(
+                        toSignIn = {
+                            navController.navigate(NAV_LOGIN)
+                        }
+                    ) {
+                        CreateGroupScreen(navController = navController)
+                    }
+                }
+                composable(NAV_PROFILE) {
+                    AuthenticatedRoute(
+                        toSignIn = {
+                            navController.navigate(NAV_LOGIN)
+                        }
+                    ) {
+                        ProfileScreen()
+                    }
+                }
                 composable(
                     NAV_BILL,
                     arguments = listOf(navArgument("billId") { type = NavType.StringType })
@@ -51,6 +75,8 @@ class MainActivity : ComponentActivity() {
                         billId = it.arguments?.getString("billId")!!
                     )
                 }
+                composable(NAV_LOGIN) { LoginPage(navController = navController) }
+                composable(NAV_REGISTER) { RegisterPage(navController = navController) }
             }
         }
     }
