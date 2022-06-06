@@ -13,9 +13,7 @@
 
 ### User Experience
 - User Register/Login: User will have to register before using for first time users, after that they can login to use the app whenever they want
-	- User Register
 ![](https://i.imgur.com/Ev3CkDv.gif)
-	- User Login
 ![](https://i.imgur.com/exvHYof.gif)
 
 - User can choose number of people to split with and add subtotal and tax of bill
