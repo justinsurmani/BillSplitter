@@ -48,7 +48,6 @@ class MainActivity : ComponentActivity() {
                     arguments = listOf(navArgument("billId") { type = NavType.StringType })
                 ) {
                     BillScreen(
-                        navController = navController,
                         billId = it.arguments?.getString("billId")!!
                     )
                 }

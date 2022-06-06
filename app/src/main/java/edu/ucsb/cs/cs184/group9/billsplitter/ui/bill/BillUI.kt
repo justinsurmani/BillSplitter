@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
@@ -25,16 +27,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Bill
+import edu.ucsb.cs.cs184.group9.billsplitter.dao.Group
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Item
+import edu.ucsb.cs.cs184.group9.billsplitter.dao.User
 import edu.ucsb.cs.cs184.group9.billsplitter.repository.BillRepository
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.ExpandableCard
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.MultiSelectBox
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyDisplay
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyValue
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAnd
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndAdd
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndReplace
 import java.util.UUID
 
 class BillViewModelFactory(private val id: String) : ViewModelProvider.Factory {
@@ -53,8 +64,12 @@ class BillViewModel(bill: Bill) : ViewModel() {
         _tip.value = newTip
     }
 
+    fun onBillChange(newBill: Bill) {
+        _bill.value = newBill
+    }
+
     fun onItemChange(item: Item, newItem: Item) {
-        val newItems = bill.value?.items?.map { if (it == item) newItem else it }
+        val newItems = bill.value?.items?.copyAndReplace(item, newItem)
         val newBill = bill.value?.copy(items = newItems.orEmpty())
         _bill.value = newBill
     }
@@ -62,7 +77,6 @@ class BillViewModel(bill: Bill) : ViewModel() {
 
 @Composable
 fun BillScreen(
-    navController : NavController,
     billId : String,
     billViewModel: BillViewModel = viewModel(factory = BillViewModelFactory(billId))
 ) {
@@ -72,6 +86,7 @@ fun BillScreen(
     BillContent(
         bill = bill!!,
         tip = tip!!,
+        onBillChange = { billViewModel.onBillChange(it) },
         onItemChange = { prev, new -> billViewModel.onItemChange(prev, new) },
         onTipSelected = { billViewModel.onTipChange(it) }
     )
@@ -81,6 +96,7 @@ fun BillScreen(
 private fun BillContent(
     bill : Bill,
     tip : Int,
+    onBillChange: (newBill: Bill) -> Unit,
     onItemChange: (prev: Item, new: Item) -> Unit,
     onTipSelected: (Int) -> Unit
 ) {
@@ -96,54 +112,119 @@ private fun BillContent(
             text = "Your Bill"
         )
         Text(
+            text = "Bill Total: ${bill.total.asMoneyDisplay()}"
+        )
+        Text(
             text = "${bill.remainingTotal.asMoneyDisplay()} left"
         )
-        Column {
-           bill.items.forEach {
-               BillItem(
-                   billItem = it,
-                   onItemChange = onItemChange
-               )
-           }
+        Column (horizontalAlignment = Alignment.CenterHorizontally) {
+            bill.items.forEach {
+                BillItem(
+                    bill = bill,
+                    billItem = it,
+                    onItemChange = onItemChange
+                )
+            }
+            Button(
+                onClick = {
+                    val newBill = bill.copy(items = bill.items.copyAndAdd(Item("New Item", 0)))
+                    onBillChange(newBill)
+                }
+            ) {
+                Text(text = "Add Item")
+            }
         }
+
         Text(text = "$tip%")
         TipSlider(onTipSelected = onTipSelected)
+
+        Text(text = "Totals for each User")
+        bill.group.users.forEach { user ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = user.name)
+                Text(text = bill.totalsForEachUser[user]!!.asMoneyDisplay())
+            }
+        }
+
         Text(
-            text = "Your total: ${bill.total.asMoneyDisplay()}"
+            text = "Current total: ${bill.currentTotal.asMoneyDisplay()}"
         )
     }
 }
 
 @Composable
 private fun BillItem(
+    bill : Bill,
     billItem : Item,
     onItemChange: (prev: Item, new: Item) -> Unit
 ) {
     var priceDisplay by remember { mutableStateOf(billItem.price.asMoneyDisplay()) }
+    var nameDisplay by remember { mutableStateOf(billItem.name) }
     val focusManager = LocalFocusManager.current
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+
+    ExpandableCard(
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(text = billItem.name)
+                Text(text = billItem.price.asMoneyDisplay())
+            }
+        }
     ) {
-        TextField(
-            value = priceDisplay,
-            onValueChange = { value ->
-                priceDisplay = value
-            },
-            keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(onDone = {
-                onItemChange(billItem, billItem.copy(price = priceDisplay.asMoneyValue()))
-                // change local state
-                priceDisplay = priceDisplay.asMoneyValue().asMoneyDisplay()
-                focusManager.clearFocus()
-            }),
-            modifier = Modifier.width(100.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            OutlinedTextField(
+                label = { Text(text = "Item Name") },
+                value = nameDisplay,
+                onValueChange = { value ->
+                    nameDisplay = value
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(onDone = {
+                    onItemChange(billItem, billItem.copy(name = nameDisplay))
+                    focusManager.clearFocus()
+                })
+            )
+            OutlinedTextField(
+                label = { Text(text="Price") },
+                value = priceDisplay,
+                onValueChange = { value ->
+                    priceDisplay = value
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(onDone = {
+                    onItemChange(billItem, billItem.copy(price = priceDisplay.asMoneyValue()))
+                    // change local state
+                    priceDisplay = priceDisplay.asMoneyValue().asMoneyDisplay()
+                    focusManager.clearFocus()
+                }),
+            )
+        }
+        Text(text = "Payer(s)")
+        MultiSelectBox(
+            items = bill.group.users.map { it to (it in billItem.payers) },
+            stringifyItem = User::name,
+            onItemChange = {
+                val addToSet = it.second
+                onItemChange(billItem, billItem.copy(payers = billItem.payers.copyAnd(addToSet, it.first)))
+            }
         )
-        Text(text = "${billItem.payer.name}: ${billItem.price.asMoneyDisplay()}")
     }
 }
 
@@ -162,24 +243,19 @@ private fun TipSlider(onTipSelected: (Int) -> Unit, tipValues: List<Int> = listO
     )
 }
 
-private fun String.asMoneyValue(): Int {
-    val splatted = this.filter { it.isDigit() || it == '.' }
-        .split(".", limit = 2)
-
-    if (splatted.size == 1) {
-        return splatted[0].toInt() * 100
-    }
-
-    val dollars = splatted[0].ifBlank { "0" }.toInt()
-    val cents = splatted[1].substring(0, 2).ifBlank { "0" }.toInt()
-
-    return dollars * 100 + cents
+// preview composable
+@Preview
+@Composable
+private fun BillUIPreview() {
+    val users = (1..4).map { User(UUID.randomUUID().toString(), "User $it") }
+    val sampleGroup = Group(users[0], users)
+    val sampleBill = Bill(
+        id = UUID.randomUUID().toString(),
+        total = 10000,
+        group = sampleGroup,
+        items = listOf(Item("Sample Item", 0))
+    )
+    BillRepository.createBill(sampleBill)
+    BillScreen(billId = sampleBill.id)
 }
-
-private fun Int.asMoneyDisplay(): String {
-    val dollars = (this / 100).toString()
-    val cents = (this % 100).toString().padStart(2, '0')
-    return "$$dollars.$cents"
-}
-
 
