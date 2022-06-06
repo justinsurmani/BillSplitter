@@ -19,6 +19,8 @@ import edu.ucsb.cs.cs184.group9.billsplitter.R
 const val NAV_HOME = "home"
 const val NAV_PROFILE = "profile"
 const val NAV_BILL = "bill/{billId}"
+const val NAV_LOGIN = "login"
+const val NAV_REGISTER = "register"
 
 // NavItems
 sealed class NavItem(
@@ -29,12 +31,6 @@ sealed class NavItem(
     object Home: NavItem(R.string.home, R.drawable.ic_home, NAV_HOME)
     object Profile: NavItem(R.string.profile, R.drawable.ic_profile, NAV_PROFILE)
 }
-
-sealed class Screen(val route: String) {
-    object Login: Screen("login_screen")
-    object Register: Screen("register_screen")
-}
-
 
 @Composable
 fun BottomBar(navController: NavController) {
