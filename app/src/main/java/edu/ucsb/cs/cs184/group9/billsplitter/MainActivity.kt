@@ -18,6 +18,7 @@ import edu.ucsb.cs.cs184.group9.billsplitter.ui.bill.BillScreen
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.creategroup.CreateGroupScreen
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.login.LoginPage
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.login.RegisterPage
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.AuthenticatedRoute
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.BottomBar
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_BILL
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_HOME
@@ -46,10 +47,26 @@ class MainActivity : ComponentActivity() {
             NavHost(
                 modifier = Modifier.padding(innerPadding),
                 navController = navController,
-                startDestination = if (Firebase.auth.currentUser != null) NAV_HOME else NAV_LOGIN
+                startDestination = NAV_HOME
             ) {
-                composable(NAV_HOME) { CreateGroupScreen(navController = navController) }
-                composable(NAV_PROFILE) { ProfileScreen() }
+                composable(NAV_HOME) {
+                    AuthenticatedRoute(
+                        toSignIn = {
+                            navController.navigate(NAV_LOGIN)
+                        }
+                    ) {
+                        CreateGroupScreen(navController = navController)
+                    }
+                }
+                composable(NAV_PROFILE) {
+                    AuthenticatedRoute(
+                        toSignIn = {
+                            navController.navigate(NAV_LOGIN)
+                        }
+                    ) {
+                        ProfileScreen()
+                    }
+                }
                 composable(
                     NAV_BILL,
                     arguments = listOf(navArgument("billId") { type = NavType.StringType })

@@ -38,18 +38,26 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import edu.ucsb.cs.cs184.group9.billsplitter.repository.UserRepository
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_HOME
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_REGISTER
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.theme.primaryColor
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class LoginPageViewModel: ViewModel() {
-    fun signIn(email: String, password: String) = viewModelScope.launch {
+    fun signIn(
+        email: String,
+        password: String,
+        onSuccess: (AuthResult) -> Unit
+    ) = viewModelScope.launch {
         try {
             val result = Firebase.auth.signInWithEmailAndPassword(email, password).await()
             Log.i(javaClass.name, "Login successful ${result.user}")
+            onSuccess(result)
         } catch (e: Exception) {
             Log.e(javaClass.name, "Login failed ${e.message}")
         }
@@ -110,7 +118,10 @@ fun LoginPage(
 
         Button(
             onClick = {
-                loginPageViewModel.signIn(email, password)
+                loginPageViewModel.signIn(email, password) {
+                    UserRepository.updateCurrentUser()
+                    navController.navigate(NAV_HOME)
+                }
             }
         ) {
             Text("Login")

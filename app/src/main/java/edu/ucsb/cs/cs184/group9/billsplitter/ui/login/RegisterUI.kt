@@ -38,18 +38,26 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import edu.ucsb.cs.cs184.group9.billsplitter.repository.UserRepository
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_HOME
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_LOGIN
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.theme.primaryColor
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class RegisterViewModel : ViewModel() {
-    fun createUser(email: String, password: String) = viewModelScope.launch {
+    fun createUser(
+        email: String,
+        password: String,
+        onSuccess: (AuthResult) -> Unit
+    ) = viewModelScope.launch {
         try {
             val result = Firebase.auth.createUserWithEmailAndPassword(email, password).await()
             Log.i(javaClass.name, "Successfully signed up ${result.user}")
+            onSuccess(result)
         } catch (e: Exception) {
             Log.e(javaClass.name, "Error signing up ${e.message}")
         }
@@ -110,7 +118,10 @@ fun RegisterPage(
 
 
         Button(onClick = {
-            registerViewModel.createUser(email, password)
+            registerViewModel.createUser(email, password) {
+                UserRepository.updateCurrentUser()
+                navController.navigate(NAV_HOME)
+            }
         })
         {
             Text("Register")
