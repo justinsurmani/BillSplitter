@@ -94,7 +94,7 @@ fun CreateGroupContent(
         )
 
         Text(
-            text = "You've selected $amountOfPeople of people"
+            text = "You've selected $amountOfPeople people"
         )
 
         Button(

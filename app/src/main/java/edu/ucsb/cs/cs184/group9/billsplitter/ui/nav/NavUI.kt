@@ -30,6 +30,11 @@ sealed class NavItem(
     object Profile: NavItem(R.string.profile, R.drawable.ic_profile, NAV_PROFILE)
 }
 
+sealed class Screen(val route: String) {
+    object Login: Screen("login_screen")
+    object Register: Screen("register_screen")
+}
+
 
 @Composable
 fun BottomBar(navController: NavController) {
