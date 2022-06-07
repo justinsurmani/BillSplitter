@@ -21,13 +21,12 @@
 ### Stage 3
 - We later switched over to Jetpack Compose due to its similarities to React and its intuitiveness. 
 - We also added some bill splitting logic.
-- 
-
 ### Stage 4
 - We added UI for the profile page to easily access the bill history's of each user
 - We set up firebase to store user information, bill history, and authentication.
 ![](https://i.imgur.com/9iWOPY3.png)
 ![](https://i.imgur.com/9GOZUzE.png)
+![](https://i.imgur.com/mUFvRng.png)
 
 ## Challenges
 * Jetpack Compose vs XML 
