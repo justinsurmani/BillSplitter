@@ -44,6 +44,7 @@ import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyDisplay
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyValue
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndAdd
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndReplace
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndSetPayer
 import java.util.UUID
 
 class BillViewModelFactory(private val id: String) : ViewModelProvider.Factory {
@@ -218,15 +219,19 @@ private fun BillItem(
         Text(text = "Payer(s)")
         MultiSelectBox(
             items = bill.group?.users?.map {
-                it to billItem.payers.getOrElse(it.id) { false }
+                it to (it.id in billItem.payers.keys)
             }.orEmpty(),
             stringifyItem = { it?.name },
         ) {
             val id = it.first.id
             val addToSet = it.second
+            val newItem = billItem.copy(
+                payers = billItem.payers.copyAndSetPayer(addToSet, id to 0)
+            ).splitEvenly()
+
             onItemChange(
                 billItem,
-                billItem.copy(payers = billItem.payers.copyAndAdd(id to addToSet))
+                newItem
             )
         }
     }
