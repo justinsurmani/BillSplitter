@@ -56,6 +56,10 @@ internal fun <T> List<T>.copyAndAdd(newItem: T) : List<T> {
     return newList.toList()
 }
 
+internal fun <T> List<T>.copyAndRemove(prevItem: T): List<T> {
+    return this.filter { it !== prevItem }
+}
+
 internal fun <T> List<T>.copyAndResize(
     size: Int,
     defaultSupplier: (Int) -> T

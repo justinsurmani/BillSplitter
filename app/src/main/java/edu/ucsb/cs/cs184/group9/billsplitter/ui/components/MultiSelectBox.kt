@@ -12,7 +12,7 @@ import kotlin.reflect.KProperty1
 @Composable
 fun <T> MultiSelectBox(
     items: List<Pair<T, Boolean>>,
-    stringifyItem: (T?) -> String? = { it.toString() },
+    stringifyItem: (T) -> String? = { it.toString() },
     onItemChange: (item: Pair<T, Boolean>) -> Unit
 ){
     Column {

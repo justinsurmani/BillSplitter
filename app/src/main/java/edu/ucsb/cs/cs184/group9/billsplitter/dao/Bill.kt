@@ -11,8 +11,7 @@ data class Bill(
     val items : List<Item> = listOf()
 ) {
     val total : Int = subtotal + tax + tip
-    val currentTotal : Int = items.sumOf { it.price }
-    val remainingTotal : Int = total - currentTotal
+    val currentTotalForItems : Int = items.sumOf { it.price }
     val totalsForEachUser : Map<String, Int> = run {
         val totalFor: MutableMap<String, Int> = mutableMapOf()
 

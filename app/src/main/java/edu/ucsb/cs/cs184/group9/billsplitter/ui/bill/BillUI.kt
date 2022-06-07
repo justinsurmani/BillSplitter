@@ -11,8 +11,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,7 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,6 +36,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
+import edu.ucsb.cs.cs184.group9.billsplitter.R
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Bill
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Group
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Item
@@ -43,8 +47,10 @@ import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.MultiSelectBox
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyDisplay
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyValue
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndAdd
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndRemove
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndReplace
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndSetPayer
+import java.lang.Integer.min
 import java.util.UUID
 
 class BillViewModelFactory(private val id: String) : ViewModelProvider.Factory {
@@ -56,19 +62,8 @@ class BillViewModelFactory(private val id: String) : ViewModelProvider.Factory {
 class BillViewModel(id: String) : ViewModel() {
     private val _tip : MutableLiveData<Int> = MutableLiveData(15)
     val bill : LiveData<Bill?> = BillRepository.loadBill(id).asLiveData()
-    val tip : LiveData<Int> = _tip
-
-    fun onTipChange(newTip: Int) {
-        _tip.value = newTip
-    }
 
     fun onBillChange(newBill: Bill) {
-        BillRepository.saveBill(newBill)
-    }
-
-    fun onItemChange(item: Item, newItem: Item) {
-        val newItems = bill.value?.items?.copyAndReplace(item, newItem)
-        val newBill = bill.value?.copy(items = newItems.orEmpty())
         BillRepository.saveBill(newBill)
     }
 }
@@ -79,26 +74,19 @@ fun BillScreen(
     billViewModel: BillViewModel = viewModel(factory = BillViewModelFactory(billId))
 ) {
     val bill by billViewModel.bill.observeAsState()
-    val tip by billViewModel.tip.observeAsState()
 
     if (bill == null) { return }
 
     BillContent(
         bill = bill!!,
-        tip = tip!!,
-        onBillChange = { billViewModel.onBillChange(it) },
-        onItemChange = { prev, new -> billViewModel.onItemChange(prev, new) },
-        onTipSelected = { billViewModel.onTipChange(it) }
+        onBillChange = { billViewModel.onBillChange(it) }
     )
 }
 
 @Composable
 private fun BillContent(
     bill : Bill,
-    tip : Int,
-    onBillChange: (newBill: Bill) -> Unit,
-    onItemChange: (prev: Item, new: Item) -> Unit,
-    onTipSelected: (Int) -> Unit
+    onBillChange: (newBill: Bill) -> Unit
 ) {
     Column (
         modifier = Modifier
@@ -112,20 +100,26 @@ private fun BillContent(
             text = "Your Bill"
         )
         Text(
-            text = "Bill Total: ${bill.total.asMoneyDisplay()}"
+            text = "Bill Subtotal: ${bill.subtotal.asMoneyDisplay()}"
         )
         Text(
-            text = "${bill.remainingTotal.asMoneyDisplay()} left"
+            text = "${(min(bill.subtotal - bill.currentTotalForItems, 0)).asMoneyDisplay()} left for subtotal"
         )
         Column (horizontalAlignment = Alignment.CenterHorizontally) {
             bill.items.forEach {
                 BillItem(
                     bill = bill,
                     billItem = it,
-                    onItemChange = onItemChange
+                    onItemChange = { prev, new ->
+                        onBillChange(bill.copy(items = bill.items.copyAndReplace(prev, new)))
+                    },
+                    onItemDelete = { item ->
+                        onBillChange(bill.copy(items = bill.items.copyAndRemove(item)))
+                    }
                 )
             }
             Button(
+                modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     val newBill = bill.copy(items = bill.items.copyAndAdd(Item("New Item", 0)))
                     onBillChange(newBill)
@@ -134,10 +128,6 @@ private fun BillContent(
                 Text(text = "Add Item")
             }
         }
-
-        Text(text = "$tip%")
-        TipSlider(onTipSelected = onTipSelected)
-
         Text(text = "Totals for each User")
         bill.group?.users?.forEach { user ->
             Row(
@@ -149,9 +139,23 @@ private fun BillContent(
                 Text(text = bill.totalsForEachUser[user.id]!!.asMoneyDisplay())
             }
         }
-
+        SplitBillItem(
+            label = "Tax",
+            value = bill.tax,
+            bill = bill,
+            onBillChange = onBillChange
+        )
+        SplitBillItem(
+            label = "Tip",
+            value = bill.tip,
+            bill = bill,
+            onBillChange = onBillChange
+        )
         Text(
-            text = "Current total: ${bill.currentTotal.asMoneyDisplay()}"
+            text = "Current total: ${bill.totalsForEachUser.values.sum().asMoneyDisplay()}"
+        )
+        Text(
+            text = "Bill Grand Total: ${bill.total.asMoneyDisplay()}"
         )
     }
 }
@@ -160,7 +164,8 @@ private fun BillContent(
 private fun BillItem(
     bill : Bill,
     billItem : Item,
-    onItemChange: (prev: Item, new: Item) -> Unit
+    onItemChange: (prev: Item, new: Item) -> Unit,
+    onItemDelete: (prev: Item) -> Unit
 ) {
     var priceDisplay by remember { mutableStateOf(billItem.price.asMoneyDisplay()) }
     var nameDisplay by remember { mutableStateOf(billItem.name) }
@@ -221,7 +226,9 @@ private fun BillItem(
             items = bill.group?.users?.map {
                 it to (it.id in billItem.payers.keys)
             }.orEmpty(),
-            stringifyItem = { it?.name },
+            stringifyItem = { user ->
+                "${user.name} ${(billItem.payers[user.id]?.asMoneyDisplay() ?: "")}"
+            },
         ) {
             val id = it.first.id
             val addToSet = it.second
@@ -234,22 +241,70 @@ private fun BillItem(
                 newItem
             )
         }
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red),
+            onClick = {
+                onItemDelete(billItem)
+            },
+            content = {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_baseline_delete_forever_24),
+                    contentDescription = "Delete Item"
+                )
+            }
+        )
     }
 }
 
 @Composable
-private fun TipSlider(onTipSelected: (Int) -> Unit, tipValues: List<Int> = listOf(0, 15, 20, 25)) {
-    var sliderPosition by remember { mutableStateOf(1f) }
-    Text(text = "Tip")
-    Slider(
-        value = sliderPosition,
-        onValueChange = { sliderPosition = it },
-        valueRange = 0f..(tipValues.size - 1).toFloat(),
-        onValueChangeFinished = {
-            onTipSelected(tipValues[sliderPosition.toInt()])
-        },
-        steps = tipValues.size - 2
-    )
+fun SplitBillItem(
+    label: String,
+    value: Int,
+    bill: Bill,
+    onBillChange: (Bill) -> Unit
+) {
+    ExpandableCard(
+        title = {
+            Text(
+                text = "$label: ${value.asMoneyDisplay()}"
+            )
+        }
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Button(
+                onClick = {
+                    val newItem = Item(
+                        name = label,
+                        price = value,
+                        payers = bill.group?.users?.associateBy({ it.id }, { 0 }).orEmpty()
+                    ).splitEvenly()
+
+                    onBillChange(bill.copy(items = bill.items.copyAndAdd(newItem)))
+                }
+            ) {
+                Text(text = "Split Evenly")
+            }
+            Button(
+                onClick = {
+                    val sum = bill.totalsForEachUser.values.sum().toDouble()
+                    val newItem = Item(
+                        name = label,
+                        price = value,
+                        payers = bill.group?.users?.associateBy({ it.id }, { 0 }).orEmpty()
+                    ).splitProportionally(bill.totalsForEachUser.mapValues { it.value / sum })
+
+                    onBillChange(bill.copy(items = bill.items.copyAndAdd(newItem)))
+                }
+            ) {
+                Text(text = "Split Proportionally")
+            }
+        }
+    }
 }
 
 // preview composable
