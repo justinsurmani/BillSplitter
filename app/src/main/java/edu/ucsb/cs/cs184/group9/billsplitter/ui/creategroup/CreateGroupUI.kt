@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
@@ -59,10 +61,12 @@ class CreateGroupViewModel : ViewModel() {
             )
         )
     )
+    private val _name : MutableLiveData<String> = MutableLiveData()
     private val _subtotal : MutableLiveData<Int> = MutableLiveData(0)
     private val _tax : MutableLiveData<Int> = MutableLiveData(0)
     private val _tip : MutableLiveData<Int> = MutableLiveData(0)
     val group : LiveData<Group> = _group
+    val name : LiveData<String> = _name
     val subtotal : LiveData<Int> = _subtotal
     val tax : LiveData<Int> = _tax
     val tip : LiveData<Int> = _tip
@@ -74,6 +78,10 @@ class CreateGroupViewModel : ViewModel() {
         _group.value = _group.value?.copy(
             users = newUsers.orEmpty()
         )
+    }
+
+    fun onNameChange(newName: String) {
+        _name.value = newName
     }
 
     fun onSubtotalChange(newAmount: Int) {
@@ -102,12 +110,15 @@ fun CreateGroupScreen(
     val subtotal by createGroupViewModel.subtotal.observeAsState(0)
     val tax by createGroupViewModel.tax.observeAsState(0)
     val tip by createGroupViewModel.tip.observeAsState(0)
+    val name by createGroupViewModel.name.observeAsState("")
 
     CreateGroupContent(
         group = group,
         subtotal = subtotal,
         tax = tax,
         tip = tip,
+        name = name,
+        onNameChange = { createGroupViewModel.onNameChange(it.orEmpty()) },
         onAmountOfPeopleChange = { createGroupViewModel.onAmountOfPeopleChange(it) },
         onSubtotalChange = { createGroupViewModel.onSubtotalChange(it) },
         onTaxChange = { createGroupViewModel.onTaxChange(it) },
@@ -116,6 +127,7 @@ fun CreateGroupScreen(
         onCreate = {
             val sampleBill = Bill(
                 id = UUID.randomUUID().toString(),
+                name = name,
                 subtotal = subtotal,
                 tax = tax,
                 tip = tip,
@@ -130,10 +142,12 @@ fun CreateGroupScreen(
 @Composable
 fun CreateGroupContent(
     group: Group,
+    name: String,
     subtotal: Int,
     tax: Int,
     tip: Int,
     onGroupChange : (Group) -> Unit,
+    onNameChange : (String?) ->  Unit,
     onAmountOfPeopleChange : (Int) -> Unit,
     onSubtotalChange: (Int) -> Unit,
     onTaxChange: (Int) -> Unit,
@@ -146,7 +160,9 @@ fun CreateGroupContent(
     var tipDisplay by rememberSaveable { mutableStateOf(tip.asMoneyDecimal()) }
 
     Column (
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ){
@@ -160,25 +176,36 @@ fun CreateGroupContent(
                 .padding(10.dp)
                 .fillMaxWidth()
         )
+        TextInput(
+            label = "Bill Name",
+            value = name,
+            onDone = {
+                focusManager.clearFocus()
+                onNameChange(it)
+            }
+        )
         DropdownNumberMenu(
             range = 2..8,
             selectedValue = group.users.size,
             onNumberSelected = onAmountOfPeopleChange
         )
         ExpandableCard(
+            modifier = Modifier.padding(10.dp),
             title = {
                 Text(text = "Add/Edit Users")
             }
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Center
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 group.users.forEach { prev ->
-                    UserNameInput(
+                    TextInput(
                         label = "Edit Name",
                         value = prev.name.orEmpty(),
                         onDone = { value ->
+                            focusManager.clearFocus()
                             val newUser = prev.copy(
                                 name = value,
                                 email = if (Patterns.EMAIL_ADDRESS.matcher(value).matches()) value else ""
@@ -230,7 +257,7 @@ fun CreateGroupContent(
 }
 
 @Composable
-fun UserNameInput(
+fun TextInput(
     label: String,
     value: String,
     onDone: (String) -> Unit
@@ -248,7 +275,7 @@ fun UserNameInput(
         keyboardActions = KeyboardActions(onDone = {
             onDone(valueDisplay)
         }),
-        modifier = Modifier.padding(16.dp)
+        modifier = Modifier.padding(10.dp)
     )
 }
 
@@ -271,7 +298,7 @@ fun MoneyNumberInput(
             imeAction = ImeAction.Done
         ),
         keyboardActions = KeyboardActions(onDone = onDone),
-        modifier = Modifier.padding(16.dp)
+        modifier = Modifier.padding(10.dp)
     )
 }
 

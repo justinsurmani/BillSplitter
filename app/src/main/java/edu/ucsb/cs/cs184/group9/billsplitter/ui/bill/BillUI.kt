@@ -26,10 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -44,12 +47,14 @@ import edu.ucsb.cs.cs184.group9.billsplitter.dao.User
 import edu.ucsb.cs.cs184.group9.billsplitter.repository.BillRepository
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.ExpandableCard
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.MultiSelectBox
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.theme.primaryColor
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyDisplay
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyValue
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndAdd
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndRemove
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndReplace
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndSetPayer
+import java.lang.Integer.max
 import java.lang.Integer.min
 import java.util.UUID
 
@@ -97,13 +102,20 @@ private fun BillContent(
         horizontalAlignment = Alignment.CenterHorizontally,
     ){
         Text(
-            text = "Your Bill"
+            text = bill.name ?: "Your Bill",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            color = primaryColor,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth()
         )
         Text(
             text = "Bill Subtotal: ${bill.subtotal.asMoneyDisplay()}"
         )
         Text(
-            text = "${(min(bill.subtotal - bill.currentTotalForItems, 0)).asMoneyDisplay()} left for subtotal"
+            text = "${(max(bill.subtotal - bill.currentTotalForItems, 0)).asMoneyDisplay()} left for subtotal"
         )
         Column (horizontalAlignment = Alignment.CenterHorizontally) {
             bill.items.forEach {
@@ -174,7 +186,8 @@ private fun BillItem(
     ExpandableCard(
         title = {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
@@ -191,6 +204,7 @@ private fun BillItem(
             OutlinedTextField(
                 label = { Text(text = "Item Name") },
                 value = nameDisplay.orEmpty(),
+                singleLine = true,
                 onValueChange = { value ->
                     nameDisplay = value
                 },
@@ -206,6 +220,7 @@ private fun BillItem(
             OutlinedTextField(
                 label = { Text(text="Price") },
                 value = priceDisplay,
+                singleLine = true,
                 onValueChange = { value ->
                     priceDisplay = value
                 },
@@ -272,7 +287,8 @@ fun SplitBillItem(
         }
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {

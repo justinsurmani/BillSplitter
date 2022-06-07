@@ -32,6 +32,7 @@ enum class ExpandableState { VISIBLE, HIDDEN }
 // https://thecommonwise.com/blogs/6224b2820e1a380016cfd18e
 @Composable
 fun ExpandableCard(
+    modifier: Modifier = Modifier,
     defaultState: ExpandableState = ExpandableState.HIDDEN,
     title: @Composable ColumnScope.() -> Unit,
     content: @Composable ColumnScope.() -> Unit,
@@ -42,7 +43,7 @@ fun ExpandableCard(
     var cardArrowDegrees by rememberSaveable { mutableStateOf(180f) }
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable {
                 isContentVisible =
@@ -75,7 +76,7 @@ fun ExpandableCard(
                 }
             }
             AnimatedVisibility(visible = isContentVisible == ExpandableState.VISIBLE) {
-                Column {
+                Column( modifier = Modifier.fillMaxWidth() ) {
                     content()
                 }
             }

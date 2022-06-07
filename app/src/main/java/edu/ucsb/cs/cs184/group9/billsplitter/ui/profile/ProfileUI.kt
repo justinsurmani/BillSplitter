@@ -181,7 +181,7 @@ fun BillHistory(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = bill.id)
+                Text(text = bill.name ?: bill.id)
                 Text(text = bill.total.asMoneyDisplay())
             }
         }
