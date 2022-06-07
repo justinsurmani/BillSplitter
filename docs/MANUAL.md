@@ -9,7 +9,7 @@
 - Bill Splitting Page: Users can split the bill accordingly by adding individual items and adjust the tip amount![](https://i.imgur.com/9GOZUzE.png)
 
 - Profile page: User can view its information and bill history
-![]()
+![](https://i.imgur.com/mUFvRng.png)
 
 ### User Experience
 - User Register/Login: User will have to register before using for first time users, after that they can login to use the app whenever they want
