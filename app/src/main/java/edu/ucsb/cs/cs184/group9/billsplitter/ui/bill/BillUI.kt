@@ -31,6 +31,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Bill
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Group
@@ -41,21 +42,19 @@ import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.ExpandableCard
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.MultiSelectBox
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyDisplay
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyValue
-import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAnd
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndAdd
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndReplace
 import java.util.UUID
 
 class BillViewModelFactory(private val id: String) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T =
-        modelClass.getConstructor(Bill::class.java)
-            .newInstance(BillRepository.loadBill(id))
+        modelClass.getConstructor(String::class.java)
+            .newInstance(id)
 }
 
-class BillViewModel(bill: Bill) : ViewModel() {
-    private val _bill : MutableLiveData<Bill> = MutableLiveData(bill)
+class BillViewModel(id: String) : ViewModel() {
     private val _tip : MutableLiveData<Int> = MutableLiveData(15)
-    val bill : LiveData<Bill> = _bill
+    val bill : LiveData<Bill?> = BillRepository.loadBill(id).asLiveData()
     val tip : LiveData<Int> = _tip
 
     fun onTipChange(newTip: Int) {
@@ -63,13 +62,13 @@ class BillViewModel(bill: Bill) : ViewModel() {
     }
 
     fun onBillChange(newBill: Bill) {
-        _bill.value = newBill
+        BillRepository.saveBill(newBill)
     }
 
     fun onItemChange(item: Item, newItem: Item) {
         val newItems = bill.value?.items?.copyAndReplace(item, newItem)
         val newBill = bill.value?.copy(items = newItems.orEmpty())
-        _bill.value = newBill
+        BillRepository.saveBill(newBill)
     }
 }
 
@@ -80,6 +79,8 @@ fun BillScreen(
 ) {
     val bill by billViewModel.bill.observeAsState()
     val tip by billViewModel.tip.observeAsState()
+
+    if (bill == null) { return }
 
     BillContent(
         bill = bill!!,
@@ -137,14 +138,14 @@ private fun BillContent(
         TipSlider(onTipSelected = onTipSelected)
 
         Text(text = "Totals for each User")
-        bill.group.users.forEach { user ->
+        bill.group?.users?.forEach { user ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = user.name)
-                Text(text = bill.totalsForEachUser[user]!!.asMoneyDisplay())
+                Text(text = user.name.orEmpty())
+                Text(text = bill.totalsForEachUser[user.id]!!.asMoneyDisplay())
             }
         }
 
@@ -171,7 +172,7 @@ private fun BillItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(text = billItem.name)
+                Text(text = billItem.name.orEmpty())
                 Text(text = billItem.price.asMoneyDisplay())
             }
         }
@@ -183,7 +184,7 @@ private fun BillItem(
         ) {
             OutlinedTextField(
                 label = { Text(text = "Item Name") },
-                value = nameDisplay,
+                value = nameDisplay.orEmpty(),
                 onValueChange = { value ->
                     nameDisplay = value
                 },
@@ -216,13 +217,18 @@ private fun BillItem(
         }
         Text(text = "Payer(s)")
         MultiSelectBox(
-            items = bill.group.users.map { it to (it in billItem.payers) },
-            stringifyItem = User::name,
-            onItemChange = {
-                val addToSet = it.second
-                onItemChange(billItem, billItem.copy(payers = billItem.payers.copyAnd(addToSet, it.first)))
-            }
-        )
+            items = bill.group?.users?.map {
+                it to billItem.payers.getOrElse(it.id) { false }
+            }.orEmpty(),
+            stringifyItem = { it?.name },
+        ) {
+            val id = it.first.id
+            val addToSet = it.second
+            onItemChange(
+                billItem,
+                billItem.copy(payers = billItem.payers.copyAndAdd(id to addToSet))
+            )
+        }
     }
 }
 
@@ -255,7 +261,7 @@ private fun BillUIPreview() {
         group = sampleGroup,
         items = listOf(Item("Sample Item", 0))
     )
-    BillRepository.createBill(sampleBill)
+    BillRepository.saveBill(sampleBill)
     BillScreen(billId = sampleBill.id)
 }
 

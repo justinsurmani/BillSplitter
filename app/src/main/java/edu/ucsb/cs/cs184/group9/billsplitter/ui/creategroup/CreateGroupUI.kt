@@ -11,7 +11,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -43,7 +42,6 @@ import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.DropdownNumberMenu
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_BILL
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.theme.primaryColor
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyDecimal
-import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyDisplay
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyValue
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndResize
 import java.util.UUID
@@ -54,7 +52,7 @@ class CreateGroupViewModel : ViewModel() {
             owner = UserRepository.currentUser.value!!,
             users = listOf(
                 UserRepository.currentUser.value!!,
-                User("SAMPLE", "Mary", "SAMPLE")
+                User(name = "Mary")
             )
         )
     )
@@ -68,7 +66,7 @@ class CreateGroupViewModel : ViewModel() {
 
     fun onAmountOfPeopleChange(newAmount: Int) {
         val newUsers = _group.value?.users?.copyAndResize(newAmount) {
-            User("SAMPLE", "User $it", "SAMPLE")
+            User(name = "User $it")
         }
         _group.value = _group.value?.copy(
             users = newUsers.orEmpty()
@@ -115,7 +113,7 @@ fun CreateGroupScreen(
                 tip = tip,
                 group = group
             )
-            BillRepository.createBill(sampleBill)
+            BillRepository.saveBill(sampleBill)
             navController.navigate(NAV_BILL.replace("{billId}", sampleBill.id))
         }
     )
