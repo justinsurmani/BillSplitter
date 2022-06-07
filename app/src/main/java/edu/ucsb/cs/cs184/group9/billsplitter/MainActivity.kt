@@ -16,15 +16,10 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.bill.BillScreen
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.creategroup.CreateGroupScreen
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.editprofile.EditProfileScreen
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.login.LoginPage
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.login.RegisterPage
-import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.AuthenticatedRoute
-import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.BottomBar
-import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_BILL
-import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_HOME
-import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_LOGIN
-import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_PROFILE
-import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_REGISTER
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.*
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.profile.ProfileScreen
 
 class MainActivity : ComponentActivity() {
@@ -64,7 +59,16 @@ class MainActivity : ComponentActivity() {
                             navController.navigate(NAV_LOGIN)
                         }
                     ) {
-                        ProfileScreen()
+                        ProfileScreen(navController = navController)
+                    }
+                }
+                composable(NAV_EDIT_PROFILE) {
+                    AuthenticatedRoute(
+                        toSignIn = {
+                            navController.navigate(NAV_LOGIN)
+                        }
+                    ) {
+                        EditProfileScreen(navController = navController)
                     }
                 }
                 composable(

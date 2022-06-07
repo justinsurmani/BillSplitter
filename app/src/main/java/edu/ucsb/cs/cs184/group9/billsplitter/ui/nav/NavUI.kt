@@ -18,6 +18,7 @@ import edu.ucsb.cs.cs184.group9.billsplitter.R
 // Routes
 const val NAV_HOME = "home"
 const val NAV_PROFILE = "profile"
+const val NAV_EDIT_PROFILE = "edit_profile"
 const val NAV_BILL = "bill/{billId}"
 const val NAV_LOGIN = "login"
 const val NAV_REGISTER = "register"

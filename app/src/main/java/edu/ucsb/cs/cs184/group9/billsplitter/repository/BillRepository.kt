@@ -45,4 +45,21 @@ object BillRepository {
             }
         }
     }
+
+    fun loadBillsFor(userEmail: String) : Flow<List<Bill?>> {
+        Log.i(this.javaClass.name, "Load Bills for $userEmail")
+
+        return callbackFlow {
+            val snapshotListener = db.collection("bills")
+                .whereArrayContains("userEmails", userEmail)
+                .addSnapshotListener { qs, _ ->
+                    val bills = qs?.documents?.map { it.toObject<Bill>() }.orEmpty()
+                    trySend(bills)
+                }
+
+            awaitClose {
+                snapshotListener.remove()
+            }
+        }
+    }
 }
