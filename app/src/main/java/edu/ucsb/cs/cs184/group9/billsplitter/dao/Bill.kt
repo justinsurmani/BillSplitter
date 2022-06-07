@@ -1,6 +1,5 @@
 package edu.ucsb.cs.cs184.group9.billsplitter.dao
 
-import com.google.firebase.firestore.Exclude
 import java.util.UUID
 
 data class Bill(
@@ -17,16 +16,17 @@ data class Bill(
     val totalsForEachUser : Map<String, Int> = run {
         val totalFor: MutableMap<String, Int> = mutableMapOf()
 
-        group?.users?.forEach { totalFor[it.id!!] = 0 }
+        group?.users?.forEach { totalFor[it.id] = 0 }
 
         items.forEach { item ->
             if (item.payers.isEmpty()) return@forEach
 
             var remainingTotalForItem = item.price
             val totalPerPayer = item.price / item.payers.size
-            item.payers.forEachIndexed { i, payer ->
+            item.payers.keys
+                .forEachIndexed { i, payer ->
                 val totalToAdd = if (i == item.payers.size - 1) remainingTotalForItem else totalPerPayer
-                totalFor[payer.id!!] = totalFor[payer.id]!! + totalToAdd
+                totalFor[payer] = totalFor[payer]!! + totalToAdd
                 remainingTotalForItem -= totalToAdd
             }
         }

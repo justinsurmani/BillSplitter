@@ -11,7 +11,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -43,7 +42,6 @@ import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.DropdownNumberMenu
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_BILL
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.theme.primaryColor
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyDecimal
-import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyDisplay
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyValue
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndResize
 import java.util.UUID
@@ -115,7 +113,7 @@ fun CreateGroupScreen(
                 tip = tip,
                 group = group
             )
-            BillRepository.createBill(sampleBill)
+            BillRepository.saveBill(sampleBill)
             navController.navigate(NAV_BILL.replace("{billId}", sampleBill.id))
         }
     )

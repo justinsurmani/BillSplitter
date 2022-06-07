@@ -6,6 +6,10 @@ import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Bill
 import java.util.UUID
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 object BillRepository {
@@ -16,7 +20,8 @@ object BillRepository {
 
     private val db = Firebase.firestore
 
-    fun createBill(bill: Bill) {
+    fun saveBill(bill: Bill?) {
+        if (bill == null) return
         Log.i(this.javaClass.name, "Creating Bill $bill")
 
         db.collection("bills")
@@ -24,13 +29,20 @@ object BillRepository {
             .set(bill)
     }
 
-    suspend fun loadBill(id: String) : Bill? {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun loadBill(id: String) : Flow<Bill?> {
         Log.i(this.javaClass.name, "Load Bill $id")
 
-        return db.collection("bills")
-            .document(id)
-            .get()
-            .await()
-            .toObject<Bill>()
+        return callbackFlow {
+            val snapshotListener = db.collection("bills")
+                .document(id)
+                .addSnapshotListener { qs, _ ->
+                    trySend(qs?.toObject<Bill>())
+                }
+
+            awaitClose {
+                snapshotListener.remove()
+            }
+        }
     }
 }
