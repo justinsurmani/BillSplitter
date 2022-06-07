@@ -59,7 +59,7 @@ fun CreateGroupScreen(
         amountOfPeople = amountOfPeople,
         onAmountOfPeopleChange = { createGroupViewModel.onAmountOfPeopleChange(it) },
         onCreate = {
-            val users = (1..amountOfPeople).map { User(UUID.randomUUID().toString(), "User $it") }
+            val users = (1..amountOfPeople).map { User(UUID.randomUUID().toString(), "User $it", "user$it@user.com") }
             val sampleGroup = Group(users[0], users)
             val sampleBill = Bill(
                 id = UUID.randomUUID().toString(),

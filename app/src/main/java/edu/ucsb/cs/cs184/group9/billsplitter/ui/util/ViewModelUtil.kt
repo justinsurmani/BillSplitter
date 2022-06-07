@@ -6,7 +6,7 @@ import edu.ucsb.cs.cs184.group9.billsplitter.dao.User
 // helpful extension functions
 
 internal fun FirebaseUser.asUser() : User {
-    return User(this.uid, this.displayName, this.email)
+    return User(this.uid, this.displayName ?: this.email!!, this.email!!)
 }
 
 internal fun String.asMoneyValue(): Int {

@@ -245,7 +245,7 @@ private fun TipSlider(onTipSelected: (Int) -> Unit, tipValues: List<Int> = listO
 @Preview
 @Composable
 private fun BillUIPreview() {
-    val users = (1..4).map { User(UUID.randomUUID().toString(), "User $it") }
+    val users = (1..4).map { User(UUID.randomUUID().toString(), "User $it", "user@user.com") }
     val sampleGroup = Group(users[0], users)
     val sampleBill = Bill(
         id = UUID.randomUUID().toString(),
