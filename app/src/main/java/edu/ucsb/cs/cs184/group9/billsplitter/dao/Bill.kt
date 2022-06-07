@@ -11,23 +11,15 @@ data class Bill(
     val items : List<Item> = listOf()
 ) {
     val total : Int = subtotal + tax + tip
-    val currentTotal : Int = items.sumOf { it.price }
-    val remainingTotal : Int = total - currentTotal
+    val currentTotalForItems : Int = items.sumOf { it.price }
     val totalsForEachUser : Map<String, Int> = run {
         val totalFor: MutableMap<String, Int> = mutableMapOf()
 
         group?.users?.forEach { totalFor[it.id] = 0 }
 
         items.forEach { item ->
-            if (item.payers.isEmpty()) return@forEach
-
-            var remainingTotalForItem = item.price
-            val totalPerPayer = item.price / item.payers.size
-            item.payers.keys
-                .forEachIndexed { i, payer ->
-                val totalToAdd = if (i == item.payers.size - 1) remainingTotalForItem else totalPerPayer
-                totalFor[payer] = totalFor[payer]!! + totalToAdd
-                remainingTotalForItem -= totalToAdd
+            item.payers.entries.forEach {
+                totalFor[it.key] = totalFor[it.key]!! + it.value
             }
         }
 

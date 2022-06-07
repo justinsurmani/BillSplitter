@@ -34,10 +34,10 @@ internal fun Int.asMoneyDisplay(): String {
     return "$${asMoneyDecimal()}"
 }
 
-internal fun <K> Map<K,Boolean>.copyAndAdd(item: Pair<K, Boolean>): Map<K, Boolean> {
+internal fun <K, V> Map<K, V>.copyAndSetPayer(setPayer: Boolean, item : Pair<K, V>): Map<K, V> {
     val newSet = this.toMutableMap()
 
-    if (item.second)
+    if (setPayer)
         newSet[item.first] = item.second
     else
         newSet.remove(item.first)
@@ -54,6 +54,10 @@ internal fun <T> List<T>.copyAndAdd(newItem: T) : List<T> {
     newList.add(newItem)
 
     return newList.toList()
+}
+
+internal fun <T> List<T>.copyAndRemove(prevItem: T): List<T> {
+    return this.filter { it !== prevItem }
 }
 
 internal fun <T> List<T>.copyAndResize(
