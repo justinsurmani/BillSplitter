@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -44,15 +45,22 @@ import edu.ucsb.cs.cs184.group9.billsplitter.R
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.User
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_EDIT_PROFILE
 import org.intellij.lang.annotations.JdkConstants
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.theme.primaryColor
+import edu.ucsb.cs.cs184.group9.billsplitter.repository.UserRepository
+
 
 class ProfileViewModel : ViewModel() {
     private val _name : MutableLiveData<String> = MutableLiveData("test")
     val name : LiveData<String> = _name
+    var user = UserRepository.currentUser.value
 
     fun onNameChange(newName: String) {
         _name.value = newName
     }
 }
+
 
 @Composable
 fun ProfileScreen (navController: NavController, profileViewModel: ProfileViewModel = viewModel()) {
@@ -78,27 +86,41 @@ fun ProfileScreen (navController: NavController, profileViewModel: ProfileViewMo
             )
 
             {
-            Text(text = "Edit profile",
-                modifier = Modifier
-                .clickable { navController.navigate(NAV_EDIT_PROFILE) })
+            //Text(text = "Edit profile",
+              //  modifier = Modifier
+                //.clickable { navController.navigate(NAV_EDIT_PROFILE) })
+
+                Card(
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(30.dp)
+                )
+                {
+                    Image(
+                        painter = rememberImagePainter(R.drawable.ic_settings_logo),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .clickable { navController.navigate(NAV_EDIT_PROFILE) },
+                        contentScale = ContentScale.Crop
+                    )
+                }
         }
-        ProfilePicture()
+
+        ProfilePicture(profileViewModel.user!!)
     }
 }
 
 @Composable
-fun ProfilePicture() {
+fun ProfilePicture(user: User) {
     val imageUri = rememberSaveable { mutableStateOf("") }
-    val painter = rememberImagePainter(
+    val painterProfilePic = rememberImagePainter(
         if(imageUri.value.isEmpty())
             R.drawable.ic_defaultprofilepicture
         else
             imageUri.value
     )
-    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent())
-    {
-        uri: Uri? ->   uri?.let { imageUri.value = it.toString() }
-    }
     
     Column(
         modifier = Modifier
@@ -113,7 +135,7 @@ fun ProfilePicture() {
         )
         {
             Image(
-                painter = painter,
+                painter = painterProfilePic,
                 contentDescription = null,
                 modifier = Modifier
                     .wrapContentSize(),
@@ -121,10 +143,10 @@ fun ProfilePicture() {
             )
         }
         Text(
-            text = "Justin Surmani",
+            text = user.email!!,
             fontSize = 20.sp
         )
-        Divider(color = Color.Gray, thickness = 2.dp)
+        Divider(color = primaryColor, thickness = 2.dp)
     }
     Row(
         modifier = Modifier
@@ -137,6 +159,7 @@ fun ProfilePicture() {
             style = TextStyle(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
+                color = primaryColor
             ),
         )
     }

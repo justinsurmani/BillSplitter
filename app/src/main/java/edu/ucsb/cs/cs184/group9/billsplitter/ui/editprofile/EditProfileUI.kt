@@ -37,13 +37,16 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextDecoration
 import edu.ucsb.cs.cs184.group9.billsplitter.R
+import edu.ucsb.cs.cs184.group9.billsplitter.repository.UserRepository
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_BILL
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_PROFILE
+import edu.ucsb.cs.cs184.group9.billsplitter.dao.User
 import org.intellij.lang.annotations.JdkConstants
 
-class ProfileViewModel : ViewModel() {
+class EditProfileViewModel : ViewModel() {
     private val _name : MutableLiveData<String> = MutableLiveData("test")
     val name : LiveData<String> = _name
+    var user = UserRepository.currentUser.value
 
     fun onNameChange(newName: String) {
         _name.value = newName
@@ -51,7 +54,7 @@ class ProfileViewModel : ViewModel() {
 }
 
 @Composable
-fun EditProfileScreen (navController: NavController, profileViewModel: ProfileViewModel = viewModel()) {
+fun EditProfileScreen (navController: NavController, editProfileViewModel: EditProfileViewModel = viewModel()) {
 
     val notification = rememberSaveable{ mutableStateOf("") }
     if(notification.value.isNotEmpty())
@@ -99,7 +102,7 @@ fun EditProfileScreen (navController: NavController, profileViewModel: ProfileVi
                 }
             )
         }
-        EditProfilePicture()
+        EditProfilePicture(editProfileViewModel.user!!)
 
         Row(modifier = Modifier
             .fillMaxWidth()
@@ -124,7 +127,7 @@ fun EditProfileScreen (navController: NavController, profileViewModel: ProfileVi
 }
 
 @Composable
-fun EditProfilePicture() {
+fun EditProfilePicture(user: User) {
     val imageUri = rememberSaveable { mutableStateOf("") }
     val painter = rememberImagePainter(
         if(imageUri.value.isEmpty())
@@ -164,7 +167,7 @@ fun EditProfilePicture() {
             fontSize = 16.sp
         )
         Text(
-            text = "@User123",
+            text = user.name!!,
             fontSize = 20.sp,
             modifier = Modifier.padding(10.dp)
         )
