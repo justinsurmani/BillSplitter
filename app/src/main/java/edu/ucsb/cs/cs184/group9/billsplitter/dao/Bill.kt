@@ -2,10 +2,13 @@ package edu.ucsb.cs.cs184.group9.billsplitter.dao
 
 data class Bill(
     val id: String,
-    val total: Int,
+    val subtotal: Int,
+    val tax: Int,
+    val tip: Int,
     val group: Group,
     val items : List<Item> = listOf()
 ) {
+    val total : Int = subtotal + tax + tip
     val currentTotal : Int = items.sumOf { it.price }
     val remainingTotal : Int = total - currentTotal
     val totalsForEachUser : Map<User, Int> = run {

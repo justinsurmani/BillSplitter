@@ -249,7 +249,9 @@ private fun BillUIPreview() {
     val sampleGroup = Group(users[0], users)
     val sampleBill = Bill(
         id = UUID.randomUUID().toString(),
-        total = 10000,
+        subtotal = 100_00,
+        tax = 7_00,
+        tip = 15_00,
         group = sampleGroup,
         items = listOf(Item("Sample Item", 0))
     )
