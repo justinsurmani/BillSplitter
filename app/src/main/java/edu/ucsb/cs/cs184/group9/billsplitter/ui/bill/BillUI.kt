@@ -31,6 +31,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Bill
 import edu.ucsb.cs.cs184.group9.billsplitter.dao.Group
@@ -45,18 +46,25 @@ import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAnd
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndAdd
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndReplace
 import java.util.UUID
+import kotlinx.coroutines.launch
 
 class BillViewModelFactory(private val id: String) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T =
-        modelClass.getConstructor(Bill::class.java)
-            .newInstance(BillRepository.loadBill(id))
+        modelClass.getConstructor(String::class.java)
+            .newInstance(id)
 }
 
-class BillViewModel(bill: Bill) : ViewModel() {
-    private val _bill : MutableLiveData<Bill> = MutableLiveData(bill)
+class BillViewModel(id: String) : ViewModel() {
+    private val _bill : MutableLiveData<Bill> = MutableLiveData()
     private val _tip : MutableLiveData<Int> = MutableLiveData(15)
     val bill : LiveData<Bill> = _bill
     val tip : LiveData<Int> = _tip
+
+    init {
+        viewModelScope.launch {
+            _bill.value = BillRepository.loadBill(id)
+        }
+    }
 
     fun onTipChange(newTip: Int) {
         _tip.value = newTip
@@ -80,6 +88,8 @@ fun BillScreen(
 ) {
     val bill by billViewModel.bill.observeAsState()
     val tip by billViewModel.tip.observeAsState()
+
+    if (bill == null) { return }
 
     BillContent(
         bill = bill!!,
@@ -137,14 +147,14 @@ private fun BillContent(
         TipSlider(onTipSelected = onTipSelected)
 
         Text(text = "Totals for each User")
-        bill.group.users.forEach { user ->
+        bill.group?.users?.forEach { user ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = user.name)
-                Text(text = bill.totalsForEachUser[user]!!.asMoneyDisplay())
+                Text(text = user.name.orEmpty())
+                Text(text = bill.totalsForEachUser[user.id]!!.asMoneyDisplay())
             }
         }
 
@@ -171,7 +181,7 @@ private fun BillItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(text = billItem.name)
+                Text(text = billItem.name.orEmpty())
                 Text(text = billItem.price.asMoneyDisplay())
             }
         }
@@ -183,7 +193,7 @@ private fun BillItem(
         ) {
             OutlinedTextField(
                 label = { Text(text = "Item Name") },
-                value = nameDisplay,
+                value = nameDisplay.orEmpty(),
                 onValueChange = { value ->
                     nameDisplay = value
                 },
@@ -216,13 +226,15 @@ private fun BillItem(
         }
         Text(text = "Payer(s)")
         MultiSelectBox(
-            items = bill.group.users.map { it to (it in billItem.payers) },
-            stringifyItem = User::name,
-            onItemChange = {
-                val addToSet = it.second
-                onItemChange(billItem, billItem.copy(payers = billItem.payers.copyAnd(addToSet, it.first)))
-            }
-        )
+            items = bill.group?.users?.map { it to (it in billItem.payers) }.orEmpty(),
+            stringifyItem = { it?.name },
+        ) {
+            val addToSet = it.second
+            onItemChange(
+                billItem,
+                billItem.copy(payers = billItem.payers.copyAnd(addToSet, it.first))
+            )
+        }
     }
 }
 

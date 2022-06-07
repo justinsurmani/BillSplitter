@@ -54,7 +54,7 @@ class CreateGroupViewModel : ViewModel() {
             owner = UserRepository.currentUser.value!!,
             users = listOf(
                 UserRepository.currentUser.value!!,
-                User("SAMPLE", "Mary", "SAMPLE")
+                User(name = "Mary")
             )
         )
     )
@@ -68,7 +68,7 @@ class CreateGroupViewModel : ViewModel() {
 
     fun onAmountOfPeopleChange(newAmount: Int) {
         val newUsers = _group.value?.users?.copyAndResize(newAmount) {
-            User("SAMPLE", "User $it", "SAMPLE")
+            User(name = "User $it")
         }
         _group.value = _group.value?.copy(
             users = newUsers.orEmpty()
