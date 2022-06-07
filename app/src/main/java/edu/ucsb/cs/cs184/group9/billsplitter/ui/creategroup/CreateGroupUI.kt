@@ -1,5 +1,6 @@
 package edu.ucsb.cs.cs184.group9.billsplitter.ui.creategroup
 
+import android.util.Patterns
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,10 +40,12 @@ import edu.ucsb.cs.cs184.group9.billsplitter.dao.User
 import edu.ucsb.cs.cs184.group9.billsplitter.repository.BillRepository
 import edu.ucsb.cs.cs184.group9.billsplitter.repository.UserRepository
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.DropdownNumberMenu
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.components.ExpandableCard
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_BILL
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.theme.primaryColor
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyDecimal
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asMoneyValue
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndReplace
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.copyAndResize
 import java.util.UUID
 
@@ -84,6 +87,10 @@ class CreateGroupViewModel : ViewModel() {
     fun onTipChange(newAmount: Int) {
         _tip.value = newAmount
     }
+
+    fun onGroupChange(newGroup: Group) {
+        _group.value = newGroup
+    }
 }
 
 @Composable
@@ -105,6 +112,7 @@ fun CreateGroupScreen(
         onSubtotalChange = { createGroupViewModel.onSubtotalChange(it) },
         onTaxChange = { createGroupViewModel.onTaxChange(it) },
         onTipChange = { createGroupViewModel.onTipChange(it) },
+        onGroupChange = { createGroupViewModel.onGroupChange(it) },
         onCreate = {
             val sampleBill = Bill(
                 id = UUID.randomUUID().toString(),
@@ -125,6 +133,7 @@ fun CreateGroupContent(
     subtotal: Int,
     tax: Int,
     tip: Int,
+    onGroupChange : (Group) -> Unit,
     onAmountOfPeopleChange : (Int) -> Unit,
     onSubtotalChange: (Int) -> Unit,
     onTaxChange: (Int) -> Unit,
@@ -156,9 +165,32 @@ fun CreateGroupContent(
             selectedValue = group.users.size,
             onNumberSelected = onAmountOfPeopleChange
         )
-        Text(
-            text = "You've selected ${group.users.size} people"
-        )
+        ExpandableCard(
+            title = {
+                Text(text = "Add/Edit Users")
+            }
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.Center
+            ) {
+                group.users.forEach { prev ->
+                    UserNameInput(
+                        label = "Edit Name",
+                        value = prev.name.orEmpty(),
+                        onDone = { value ->
+                            val newUser = prev.copy(
+                                name = value,
+                                email = if (Patterns.EMAIL_ADDRESS.matcher(value).matches()) value else ""
+                            )
+                            onGroupChange(group.copy(
+                                users = group.users.copyAndReplace(prev, newUser)
+                            ))
+                        }
+                    )
+                }
+            }
+        }
         MoneyNumberInput(
             label = "Subtotal",
             value = subtotalDisplay,
@@ -195,6 +227,29 @@ fun CreateGroupContent(
             Text(text = "Create")
         }
     }
+}
+
+@Composable
+fun UserNameInput(
+    label: String,
+    value: String,
+    onDone: (String) -> Unit
+) {
+    var valueDisplay by rememberSaveable { mutableStateOf(value) }
+    OutlinedTextField(
+        label = { Text(text = label) },
+        value = valueDisplay,
+        onValueChange = { valueDisplay = it },
+        placeholder = { Text(text = "Enter $label")},
+        singleLine = true,
+        keyboardOptions = KeyboardOptions.Default.copy(
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(onDone = {
+            onDone(valueDisplay)
+        }),
+        modifier = Modifier.padding(16.dp)
+    )
 }
 
 @Composable
