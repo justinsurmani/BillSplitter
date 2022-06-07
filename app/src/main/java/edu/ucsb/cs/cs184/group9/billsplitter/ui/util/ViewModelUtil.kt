@@ -23,10 +23,15 @@ internal fun String.asMoneyValue(): Int {
     return dollars * 100 + cents
 }
 
-internal fun Int.asMoneyDisplay(): String {
+internal fun Int.asMoneyDecimal(): String {
     val dollars = (this / 100).toString()
     val cents = (this % 100).toString().padStart(2, '0')
-    return "$$dollars.$cents"
+
+    return "$dollars.$cents"
+}
+
+internal fun Int.asMoneyDisplay(): String {
+    return "$${asMoneyDecimal()}"
 }
 
 internal fun <T> Set<T>.copyAnd(addToSet: Boolean, item: T): Set<T> {
@@ -47,4 +52,14 @@ internal fun <T> List<T>.copyAndAdd(newItem: T) : List<T> {
     newList.add(newItem)
 
     return newList.toList()
+}
+
+internal fun <T> List<T>.copyAndResize(
+    size: Int,
+    defaultSupplier: (Int) -> T
+): List<T> {
+    return (0 until size).map {
+        if (it < this.size) this[it]
+        else defaultSupplier(it)
+    }.toList()
 }
