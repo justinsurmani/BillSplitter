@@ -45,6 +45,7 @@ import edu.ucsb.cs.cs184.group9.billsplitter.repository.UserRepository
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_HOME
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.nav.NAV_REGISTER
 import edu.ucsb.cs.cs184.group9.billsplitter.ui.theme.primaryColor
+import edu.ucsb.cs.cs184.group9.billsplitter.ui.util.asUser
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -119,7 +120,7 @@ fun LoginPage(
         Button(
             onClick = {
                 loginPageViewModel.signIn(email, password) {
-                    UserRepository.updateCurrentUser()
+                    UserRepository.updateCurrentUser(it.user?.asUser())
                     navController.navigate(NAV_HOME)
                 }
             }
