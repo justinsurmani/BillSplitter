@@ -15,6 +15,4 @@ Framework: Kotlin & Jetpack Compose
 
 Database: Firebase
 
-## Functionality
-After opening the web application, click "Home" on the navigation bar to view the homepage. In the homepage, you can play with the map by dragging and zooming in/out. The login button at the top right of the web application allows you to login using your google account, which allows to you to make reviews and connect with others on the app. Once you're logged in, you can click "Profile" on the navigation bar to view the profile page with your name, picture, your reviews, and your favorite places. Lastly, click "About" to read more about the developers!
 
