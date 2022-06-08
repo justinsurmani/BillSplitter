@@ -1,4 +1,4 @@
-# BillSplitter
+# Bill Splitter
 
 ## Purpose
 BillSplitter is an app that allows users to input the bill total along with each individual's amount spent at a restaurant and the app will manually split the tax/tip evenly among the people. This will help simplify a lot of the calculation processes that occur during bill splitting.
