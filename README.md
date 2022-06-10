@@ -7,7 +7,10 @@ BillSplitter is an app that allows users to input the bill total along with each
 Users can create an account on the register page by inputting an email and password which will then be stored in our firebase database. All future bills created by this user will be linked to their email in firebase and will be displayed on their profile page under bill history. Users can also add other registered emails to the bill which will then allow them to collaborate on the same bill from their respective devices.
 
 ## Repository Structure
-In the package we have three folders:
+
+Our [DESIGN](https://github.com/justinsurmani/BillSplitter/blob/main/docs/DESIGN.md) document and [MANUAL](https://github.com/justinsurmani/BillSplitter/blob/main/docs/MANUAL.md) are located in the [docs](https://github.com/justinsurmani/BillSplitter/tree/main/docs) folder.
+
+In the [package](https://github.com/justinsurmani/BillSplitter/tree/main/app/src/main/java/edu/ucsb/cs/cs184/group9/billsplitter) we have three folders:
 - dao
 - repository
 - ui
