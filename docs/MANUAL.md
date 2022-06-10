@@ -34,3 +34,7 @@
 - User can adjust the prices and number of users for each item and their total will be updated correspondingly in the bottom section.
 
 ![billsplit-billui-complete_360](https://i.imgur.com/FMxEMGM.gif)
+
+- User can go to ther profile and view all bills they have created or have been added to.
+
+![](https://i.imgur.com/3x42yXm.gif)
